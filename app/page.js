@@ -1,65 +1,212 @@
+"use client";
+
+import { useState } from "react";
+
+const openSound =
+  typeof Audio !== "undefined" ? new Audio("/sounds/open.mp3") : null;
+const legendarySound =
+  typeof Audio !== "undefined" ? new Audio("/sounds/legendary.mp3") : null;
 import Image from "next/image";
 
-export default function Home() {
+// ===== ตัวละคร =====
+const characterGacha = [
+  {
+    name: "Normal",
+    chance: 61.84,
+    images: 14,
+    path: "/images/normal",
+    color: "text-white",
+  },
+  {
+    name: "Uncommon",
+    chance: 13.25,
+    images: 8,
+    path: "/images/uncommon",
+    color: "text-green-400",
+  },
+  {
+    name: "Common",
+    chance: 14.05,
+    images: 6,
+    path: "/images/common",
+    color: "text-blue-400",
+  },
+  {
+    name: "Rare",
+    chance: 2.61,
+    images: 8,
+    path: "/images/rare",
+    color: "text-purple-400",
+  },
+  {
+    name: "Epic",
+    chance: 1.27,
+    images: 4,
+    path: "/images/epic",
+    color: "text-pink-400",
+  },
+  {
+    name: "Legendary",
+    chance: 0.98,
+    images: 4,
+    path: "/images/legendary",
+    color: "text-yellow-400 font-bold",
+  },
+];
+
+// ===== อาวุธ =====
+const weaponGacha = [
+  {
+    name: "Normal",
+    chance: 24.73,
+    images: 16,
+    path: "/images2/normal",
+    color: "text-white",
+  },
+  {
+    name: "Uncommon",
+    chance: 16.48,
+    images: 5,
+    path: "/images2/uncommon",
+    color: "text-green-400",
+  },
+  {
+    name: "Common",
+    chance: 9.83,
+    images: 16,
+    path: "/images2/common",
+    color: "text-blue-400",
+  },
+  {
+    name: "Rare",
+    chance: 6.51,
+    images: 5,
+    path: "/images2/rare",
+    color: "text-purple-400",
+  },
+  {
+    name: "Epic",
+    chance: 3.65,
+    images: 12,
+    path: "/images2/epic",
+    color: "text-pink-400",
+  },
+  {
+    name: "Legendary",
+    chance: 2.38,
+    images: 5,
+    path: "/images2/legendary",
+    color: "text-yellow-400 font-bold",
+  },
+  {
+    name: "God",
+    chance: 1.82,
+    images: 2,
+    path: "/images2/god",
+    color: "text-red-400 font-bold",
+  },
+];
+
+function weightedRandom(groups) {
+  const total = groups.reduce((s, g) => s + g.chance, 0);
+  let rand = Math.random() * total;
+
+  for (const g of groups) {
+    if (rand < g.chance) return g;
+    rand -= g.chance;
+  }
+}
+
+export default function GachaPage() {
+  const [cards, setCards] = useState([]);
+
+  const openPack = (groups) => {
+    const temp = [];
+    for (let i = 0; i < 10; i++) {
+      const group = weightedRandom(groups);
+      const imgIndex = Math.floor(Math.random() * group.images) + 1;
+      temp.push({
+        revealed: false,
+        name: group.name,
+        color: group.color,
+        img: `${group.path}/${imgIndex}.png`,
+      });
+    }
+    setCards(temp);
+  };
+
+  const revealCard = async (index) => {
+    if (cards[index].revealed) return;
+    const newCards = [...cards];
+
+    openSound && openSound.play();
+
+    await new Promise((r) => setTimeout(r, 500));
+    newCards[index].revealed = true;
+
+    if (
+      newCards[index].name === "Legendary" ||
+      newCards[index].name === "God"
+    ) {
+      legendarySound && legendarySound.play();
+    }
+
+    setCards(newCards);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen bg-zinc-900 text-white p-6">
+      <h1 className="text-3xl font-bold text-center mb-6">
+        🎰 Gacha Simulator
+      </h1>
+
+      <div className="flex justify-center gap-4 mb-6">
+        <button
+          onClick={() => openPack(characterGacha)}
+          className="px-6 py-3 bg-blue-500 font-semibold rounded-xl hover:bg-blue-400"
+        >
+          สุ่มตัวประดับ 10 ครั้ง
+        </button>
+        <button
+          onClick={() => openPack(weaponGacha)}
+          className="px-6 py-3 bg-red-500 font-semibold rounded-xl hover:bg-red-400"
+        >
+          สุ่มอาวุธ 10 ครั้ง
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 max-w-5xl mx-auto">
+        {cards.map((card, index) => (
+          <div
+            key={index}
+            onClick={() => revealCard(index)}
+            className={`bg-zinc-800 rounded-2xl p-3 shadow-lg text-center cursor-pointer hover:scale-105 transition ${
+              card.revealed &&
+              (card.name === "Legendary" || card.name === "God")
+                ? "animate-pulse ring-4 ring-yellow-400 shadow-yellow-400/50"
+                : ""
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+            {card.revealed ? (
+              <>
+                <Image
+                  src={card.img}
+                  alt={card.name}
+                  width={200}
+                  height={200}
+                  className="rounded-xl mb-2"
+                />
+                <div className={`text-sm ${card.color}`}>{card.name}</div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-[200px] text-5xl">
+                ❓
+              </div>
+            )
+            }
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
